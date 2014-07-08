@@ -1,5 +1,7 @@
 import os
 
+from django import VERSION
+
 PROJECT_ROOT = os.path.realpath(os.path.dirname(__file__))
 
 ADMINS = (
@@ -8,12 +10,22 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-DATABASE_ENGINE = 'sqlite3'
-DATABASE_NAME = os.path.join(PROJECT_ROOT, 'example.db')
-DATABASE_USER = ''
-DATABASE_PASSWORD = ''
-DATABASE_HOST = ''
-DATABASE_PORT = ''
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(PROJECT_ROOT, 'example.db'),
+        'USER': '',
+        'PASSWORD': '',
+        'HOST': '',
+        'PORT': '',
+    }
+}
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+    }
+}
 
 TIME_ZONE = 'America/Chicago'
 
@@ -28,11 +40,6 @@ MEDIA_ROOT = os.path.join(PROJECT_ROOT, 'media')
 # Examples: "http://media.lawrence.com", "http://example.com/media/"
 MEDIA_URL = '/media/'
 
-# URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
-# trailing slash.
-# Examples: "http://foo.com/media/", "/media/".
-ADMIN_MEDIA_PREFIX = '/admin_media/'
-
 # Don't share this with anybody.
 SECRET_KEY = 'ljlv2lb2d&)#by6th=!v=03-c^(o4lop92i@z4b3f1&ve0yx6d'
 
@@ -40,7 +47,6 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
     #'django.contrib.flatpages.middleware.FlatpageFallbackMiddleware',
 )
 
@@ -68,9 +74,11 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'authority',
     'example.exampleapp',
-    'debug_toolbar',
-    'django_extensions',
 )
+
+if VERSION >= (1, 5):
+    INSTALLED_APPS = INSTALLED_APPS + ('example.users',)
+    AUTH_USER_MODEL = 'users.User'
 
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.load_template_source',
@@ -83,6 +91,6 @@ TEMPLATE_DIRS = (
 
 # Use local_settings.py for things to override privately
 try:
-    from local_settings import *
+    from local_settings import *  # noqa
 except ImportError:
     pass

@@ -2,7 +2,6 @@ from django import forms, template
 from django.http import HttpResponseRedirect
 from django.utils.translation import ugettext, ungettext, ugettext_lazy as _
 from django.shortcuts import render_to_response
-from django.utils.encoding import force_unicode
 from django.utils.safestring import mark_safe
 from django.forms.formsets import all_valid
 from django.contrib import admin
@@ -10,6 +9,11 @@ from django.contrib.admin import helpers
 from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied
+
+try:
+    from django.utils.encoding import force_text
+except ImportError:
+    from django.utils.encoding import force_unicode as force_text
 
 try:
     from django.contrib.admin import actions
@@ -30,7 +34,6 @@ class PermissionInline(generic.GenericTabularInline):
             perm_choices = get_choices_for(self.parent_model)
             kwargs['label'] = _('permission')
             kwargs['widget'] = forms.Select(choices=perm_choices)
-            return db_field.formfield(**kwargs)
         return super(PermissionInline, self).formfield_for_dbfield(db_field, **kwargs)
 
 class ActionPermissionInline(PermissionInline):
@@ -62,7 +65,7 @@ def edit_permissions(modeladmin, request, queryset):
         prefix = "%s-%s" % (FormSet.get_default_prefix(), obj.pk)
         prefixes[prefix] = prefixes.get(prefix, 0) + 1
         if prefixes[prefix] != 1:
-            prefix = "%s-%s-%s" % (prefix, prefixes[prefix])
+            prefix = "%s-%s" % (prefix, prefixes[prefix])
         if request.POST.get('post'):
             formset = FormSet(data=request.POST, files=request.FILES,
                               instance=obj, prefix=prefix)
@@ -83,14 +86,17 @@ def edit_permissions(modeladmin, request, queryset):
         if all_valid(formsets):
             for formset in formsets:
                 formset.save()
+        else:
+            modeladmin.message_user(request, '; '.join(
+                err.as_text() for formset in formsets for err in formset.errors
+            ))
         # redirect to full request path to make sure we keep filter
         return HttpResponseRedirect(request.get_full_path())
 
     context = {
         'errors': ActionErrorList(formsets),
-        'title': ugettext('Permissions for %s') % force_unicode(opts.verbose_name_plural),
+        'title': ugettext('Permissions for %s') % force_text(opts.verbose_name_plural),
         'inline_admin_formsets': inline_admin_formsets,
-        'root_path': modeladmin.admin_site.root_path,
         'app_label': app_label,
         'change': True,
         'ordered_objects': ordered_objects,
@@ -105,7 +111,7 @@ def edit_permissions(modeladmin, request, queryset):
         'show_delete': False,
         'action_checkbox_name': helpers.ACTION_CHECKBOX_NAME,
         'queryset': queryset,
-        "object_name": force_unicode(opts.verbose_name),
+        "object_name": force_text(opts.verbose_name),
     }
     template_name = getattr(modeladmin, 'permission_change_form_template', [
         "admin/%s/%s/permission_change_form.html" % (app_label, opts.object_name.lower()),
@@ -134,9 +140,9 @@ class PermissionAdmin(admin.ModelAdmin):
         if db_field.name in [f.fk_field for f in self.model._meta.virtual_fields if f.name in self.generic_fields]:
             for gfk in self.model._meta.virtual_fields:
                 if gfk.fk_field == db_field.name:
-                    return db_field.formfield(
-                        widget=GenericForeignKeyRawIdWidget(
-                            gfk.ct_field, self.admin_site._registry.keys()))
+                    kwargs['widget'] = GenericForeignKeyRawIdWidget(
+                        gfk.ct_field, self.admin_site._registry.keys())
+                    break
         return super(PermissionAdmin, self).formfield_for_dbfield(db_field, **kwargs)
 
     def queryset(self, request):

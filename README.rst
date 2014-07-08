@@ -6,12 +6,12 @@ This is a Django app for per-object-permissions that includes a bunch of
 helpers to create custom permission checks.
 
 The main website for django-authority is
-`packages.python.org/django-authority`_. You can also install the
+`django-authority.readthedocs.org`_. You can also install the
 `in-development version`_ of django-authority with
 ``pip install django-authority==dev`` or ``easy_install django-authority==dev``.
 
-.. _packages.python.org/django-authority: http://packages.python.org/django-authority/
-.. _in-development version: http://bitbucket.org/jezdez/django-authority/get/tip.gz#egg=django-authority-dev
+.. _`django-authority.readthedocs.org`: http://django-authority.readthedocs.org/
+.. _in-development version: https://github.com/jezdez/django-authority/archive/master.zip#egg=django-authority-dev
 
 Example
 =======
@@ -39,7 +39,7 @@ Don't hesitate to use the admin to edit the permission objects.
 
 Full docs coming soon.
 
-Please use http://bitbucket.org/jezdez/django-authority/issues/ for issues and bug reports.
+Please use https://github.com/jezdez/django-authority/issues/ for issues and bug reports.
 
 Documentation
 =============
@@ -51,6 +51,33 @@ html version using the setup.py::
 
 Changelog:
 ==========
+
+0.8 (2013-12-20):
+-----------------
+
+* Added support for Django 1.6
+
+0.7 (2013-07-03):
+-----------------
+
+* No longer doing dependent sub-queries. It will be faster to do two small
+  queries instead of one with a dependent sub-query in the general case.
+
+0.6 (2013-06-13):
+-----------------
+
+* Added support for custom user models (Django 1.5 only).
+
+0.5 (2013-03-18):
+-----------------
+
+* It is now possible to minimize the number of queries when using
+  django-authority by caching the results of the Permission query. This can be
+  done by adding ``AUTHORITY_USE_SMART_CACHE = True`` to your settings.py
+* Confirmed support (via travis ci) for all combinations of Python 2.6,
+  Python2.7 and Django 1.3, Django 1.4, Django 1.5. Added Python 3.3 support
+  for Django 1.5
+
 
 0.4 (2010-01-15):
 -----------------
@@ -113,4 +140,4 @@ Changelog:
   allows to request permissions, but also add them (only for users with
   the 'authority.add_permission' Django permission).
 
-.. _`migrations/`: http://bitbucket.org/jezdez/django-authority/src/tip/migrations/
+.. _`migrations/`: https://github.com/jezdez/django-authority/tree/master/migrations

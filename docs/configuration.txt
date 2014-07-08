@@ -1,5 +1,5 @@
 .. _configuration:
-    
+
 =============
 Configuration
 =============
@@ -31,7 +31,12 @@ context processors::
         'django.core.context_processors.media',
         'django.core.context_processors.request',
     )
-    
+
+django-authority defaults to using a smart cache when checking permissions.
+This can be disabled by adding the following line to ``settings.py``::
+
+    AUTHORITY_USE_SMART_CACHE = False
+
 urls.py
 =======
 
